@@ -29,7 +29,7 @@ class Game extends Model
 
     public function findFinished(): Collection
     {
-        return self::query()->whereNotNull('finished_at')->with('players')->get();
+        return self::query()->whereNotNull('finished_at')->get();
     }
 
     public function players(): HasMany

@@ -1,6 +1,7 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\GameController;
+use App\Models\Game;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,6 +15,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::model('game', Game::class);
+
+Route::prefix('game')->group(function () {
+    Route::get('opened', [GameController::class, 'getListOpened']);
+    Route::get('finished', [GameController::class, 'getListFinished']);
+    Route::post('create', [GameController::class, 'postCreate']);
+    Route::post('{game}/enter', [GameController::class, 'postEnter'])->name('game.enter');
+    Route::post('{game}/turn', [GameController::class, 'postTurn'])->name('game.turn');
+    Route::get('{id}/info', [GameController::class, 'getInfo'])->name('game.info');
 });
