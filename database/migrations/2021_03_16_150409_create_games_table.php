@@ -11,11 +11,12 @@ class CreateGamesTable extends Migration
      *
      * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('games', function (Blueprint $table) {
             $table->id();
-            $table->dateTimeTz('finished_at')->nullable();
+            $table->integer('player_count')->default(0);
+            $table->dateTime('finished_at')->nullable();
             $table->timestamps();
         });
     }
@@ -25,7 +26,7 @@ class CreateGamesTable extends Migration
      *
      * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('games');
     }

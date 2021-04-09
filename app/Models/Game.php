@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Class Game
  *
  * @package App\Models
+ * @property int $id
+ * @property int $player_count
  * @property $finished_at
  */
 class Game extends Model
@@ -29,12 +31,12 @@ class Game extends Model
 
     public function findFinished(): Collection
     {
-        return self::query()->whereNotNull('finished_at')->get();
+        return self::query()->whereNotNull('finished_at')->with('players')->get();
     }
 
     public function players(): HasMany
     {
-        return $this->hasMany(GameUser::class)->limit(self::MAX_PLAYER_COUNT);
+        return $this->hasMany(GameUser::class);
     }
 
     public function findPlayerByName(string $nickname): ?GameUser

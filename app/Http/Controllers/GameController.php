@@ -9,8 +9,10 @@ use App\Http\Requests\EnterGameRequest;
 use App\Http\Requests\TurnRequest;
 use App\Models\Game;
 use App\Models\GameUser;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class GameController extends Controller
 {
@@ -52,16 +54,38 @@ class GameController extends Controller
             return response(Response::HTTP_BAD_REQUEST)->json([$request->validationData()]);
         }
 
-        if ($game->players()->count() >= Game::MAX_PLAYER_COUNT) {
+        // можно решить с замыканием и вторым параметром на максимальное число висящих транзакций и кидать исключение
+//        DB::transaction(static function() {
+//
+//        }, Game::MAX_PLAYER_COUNT);
+        // иммитируем завершившийся запрос до начала транзакции
+//        DB::table('games')->where('id', $game->id)->update(['player_count' => 3]);
+
+        DB::beginTransaction();
+
+//        $actualGame = $game;
+
+        /** @var Game $actualGame */
+        $actualGame = Game::query()->find($game->id);
+
+        if (null === $actualGame) {
+            DB::rollBack();
+            return response()->json(['messages' => ['error' => 'Game not found']], Response::HTTP_BAD_REQUEST);
+        }
+
+        if ($actualGame->player_count >= Game::MAX_PLAYER_COUNT) {
+            DB::rollBack();
             return response()->json(['messages' => ['error' => 'Game room is full']], Response::HTTP_BAD_REQUEST);
         }
 
         $player = new GameUser;
         $player->nickname = $request->request->get('nickname');
 
-        $game->players()->save($player);
+        $actualGame->players()->save($player);
 
-        return response()->json(['api' => route('game.turn', ['game' => $game->id])]);
+        DB::commit();
+
+        return response()->json(['api' => route('game.turn', ['game' => $actualGame->id])]);
     }
 
     public function postTurn(Game $game, TurnRequest $request): JsonResponse
