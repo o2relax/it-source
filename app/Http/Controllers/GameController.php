@@ -61,6 +61,7 @@ class GameController extends Controller
         // иммитируем завершившийся запрос до начала транзакции
 //        DB::table('games')->where('id', $game->id)->update(['player_count' => 3]);
 
+        // к сожалению не нашел, как в ларавел заблокировать только одну строку
         DB::beginTransaction();
 
 //        $actualGame = $game;
@@ -82,6 +83,8 @@ class GameController extends Controller
         $player->nickname = $request->request->get('nickname');
 
         $actualGame->players()->save($player);
+        $actualGame->player_count++;
+        $actualGame->save();
 
         DB::commit();
 
